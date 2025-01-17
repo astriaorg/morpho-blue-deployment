@@ -51,13 +51,14 @@ abstract contract ConfiguredScript is Script {
         bytes memory bytecode =
             abi.encodePacked(vm.getCode(string.concat("lib/", submodule, "/out/", what, ".sol/", what, ".json")), args);
 
-        vm.broadcast();
+        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         assembly ("memory-safe") {
             addr := create2(0, add(bytecode, 0x20), mload(bytecode), salt)
         }
 
         require(addr != address(0), "create2 deployment failed");
-
+        vm.stopBroadcast();
+        
         _logDeployment(submodule, what, args, addr);
     }
 
